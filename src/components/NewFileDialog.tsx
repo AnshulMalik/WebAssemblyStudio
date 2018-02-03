@@ -1,10 +1,9 @@
 import * as React from "react";
-import { Service } from "../service";
+import { ChangeEvent } from "react";
 import * as ReactModal from "react-modal";
+import { Directory, extensionForFileType, File, FileType, nameForFileType } from "../model";
 import { Button } from "./Button";
-import { GoGear, GoFile, GoX, Icon } from "./Icons";
-import { File, FileType, Directory, extensionForFileType, nameForFileType } from "../model";
-import { KeyboardEvent, ChangeEvent, ChangeEventHandler } from "react";
+import { GoFile, GoX, Icon } from "./Icons";
 import { ListBox, ListItem, TextInputBox } from "./Widgets";
 
 export class NewFileDialog extends React.Component<{
@@ -22,14 +21,14 @@ export class NewFileDialog extends React.Component<{
     this.state = {
       fileType: FileType.C,
       description: "",
-      name: ""
+      name: "",
     };
   }
-  onChangeName = (event: ChangeEvent<any>) => {
+  public onChangeName = (event: ChangeEvent<any>) => {
     this.setState({ name: event.target.value });
   }
-  nameError() {
-    let directory = this.props.directory;
+  public nameError() {
+    const directory = this.props.directory;
     if (this.state.name) {
       if (!/^[a-z0-9\.\-\_]+$/i.test(this.state.name)) {
         return "Illegal characters in file name.";
@@ -41,18 +40,18 @@ export class NewFileDialog extends React.Component<{
     }
     return "";
   }
-  fileName() {
+  public fileName() {
     let name = this.state.name;
-    let extension = extensionForFileType(this.state.fileType);
+    const extension = extensionForFileType(this.state.fileType);
     if (!name.endsWith("." + extension)) {
       name += "." + extension;
     }
     return name;
   }
-  createButtonLabel() {
+  public createButtonLabel() {
     return "Create";
   }
-  render() {
+  public render() {
     return <ReactModal
       isOpen={this.props.isOpen}
       contentLabel="Create New File"
@@ -74,22 +73,40 @@ export class NewFileDialog extends React.Component<{
                   case FileType.Cpp: description = "Creates a file containing C++ source code."; break;
                   case FileType.Cretonne: description = "Cretonne intermediate language (IL) source code."; break;
                   default: description = "N/A";
-                    break;
+                           break;
                 }
                 this.setState({ fileType, description });
               }}>
                 <ListItem value={FileType.C} label={"C File (.c)"} icon={<Icon src="svg/file_type_c.svg" />} />
                 <ListItem value={FileType.Cpp} label={"C++ File (.cpp)"} icon={<Icon src="svg/file_type_cpp.svg" />} />
-                <ListItem value={FileType.Rust} label={"Rust File (.rs)"} icon={<Icon src="svg/file_type_rust.svg" />} />
-                
-                <ListItem value={FileType.Cretonne} label={"Cretonne (.cton)"} icon={<Icon src="svg/default_file.svg" />} />
-                <ListItem value={FileType.Wast} label={"Wast (.wast)"} icon={<Icon src="svg/default_file.svg" />} />
+                <ListItem
+                  value={FileType.Rust}
+                  label={"Rust File (.rs)"}
+                  icon={<Icon src="svg/file_type_rust.svg" />} />
 
-                <ListItem value={FileType.JavaScript} label={"JavaScript (.js)"} icon={<Icon src="svg/file_type_js.svg" />} />
-                <ListItem value={FileType.TypeScript} label={"TypeScript (.ts)"} icon={<Icon src="svg/file_type_typescript.svg" />} />
+                <ListItem
+                  value={FileType.Cretonne}
+                  label={"Cretonne (.cton)"}
+                  icon={<Icon src="svg/default_file.svg" />} />
+                <ListItem
+                  value={FileType.Wast}
+                  label={"Wast (.wast)"}
+                  icon={<Icon src="svg/default_file.svg" />} />
+
+                <ListItem
+                  value={FileType.JavaScript}
+                  label={"JavaScript (.js)"}
+                  icon={<Icon src="svg/file_type_js.svg" />} />
+                <ListItem
+                  value={FileType.TypeScript}
+                  label={"TypeScript (.ts)"}
+                  icon={<Icon src="svg/file_type_typescript.svg" />} />
                 <ListItem value={FileType.HTML} label={"HTML (.html)"} icon={<Icon src="svg/file_type_html.svg" />} />
                 <ListItem value={FileType.CSS} label={"CSS (.css)"} icon={<Icon src="svg/file_type_css.svg" />} />
-                <ListItem value={FileType.Markdown} label={"Markdown (.md)"} icon={<Icon src="svg/file_type_markdown.svg" />} />
+                <ListItem
+                  value={FileType.Markdown}
+                  label={"Markdown (.md)"}
+                  icon={<Icon src="svg/file_type_markdown.svg" />} />
               </ListBox>
             </div>
             <div className="new-file-dialog-description">
@@ -98,16 +115,25 @@ export class NewFileDialog extends React.Component<{
           </div>
         </div>
         <div style={{ flex: 1, padding: "8px" }}>
-          <TextInputBox label={"Name: " + (this.props.directory ? this.props.directory.getPath() + "/": "")} error={this.nameError()} value={this.state.name} onChange={this.onChangeName}/>
+          <TextInputBox
+            label={"Name: " + (this.props.directory ? this.props.directory.getPath() + "/" : "")}
+            error={this.nameError()}
+            value={this.state.name}
+            onChange={this.onChangeName}/>
         </div>
         <div>
           <Button icon={<GoX />} label="Cancel" title="Create New File" onClick={() => {
             this.props.onCancel();
           }} />
-          <Button icon={<GoFile />} label={this.createButtonLabel()} title="Create New File" isDisabled={!this.state.fileType || !this.state.name || !!this.nameError()} onClick={() => {
-            let file = new File(this.fileName(), this.state.fileType);
-            this.props.onCreate && this.props.onCreate(file);
-          }} />
+          <Button
+            icon={<GoFile />}
+            label={this.createButtonLabel()}
+            title="Create New File"
+            isDisabled={!this.state.fileType || !this.state.name || !!this.nameError()}
+            onClick={() => {
+              const file = new File(this.fileName(), this.state.fileType);
+              return this.props.onCreate && this.props.onCreate(file);
+            }} />
         </div>
       </div>
     </ReactModal>;

@@ -7,7 +7,7 @@ export class Button extends React.Component<{
   isDisabled?: boolean;
   onClick?: Function
 }, {}> {
-  render() {
+  public render() {
     let className = "button";
     if (this.props.isDisabled) {
       className += " disabled";

@@ -1,8 +1,8 @@
 import * as React from "react";
+import { ILogger, mimeTypeForFileType, Project } from "../model";
 import { Split } from "./Split";
-import { Project, mimeTypeForFileType, ILogger } from "../model";
 
-interface SandboxWindow extends Window {
+interface ISandboxWindow extends Window {
   /**
    * Creates an object URL to a Blob containing the file's data.
    */
@@ -10,62 +10,62 @@ interface SandboxWindow extends Window {
 }
 
 export class Sandbox extends React.Component<{
-  logger: ILogger
+  logger: ILogger,
 }, {}> {
-  container: HTMLDivElement;
+  public container: HTMLDivElement;
   private setContainer(container: HTMLDivElement) {
-    if (container == null) return;
+    if (container == null) { return; }
     if (this.container !== container) {
       // ...
     }
     this.container = container;
   }
-  onResizeBegin = () => {
+  public onResizeBegin = () => {
     this.container.style.pointerEvents = "none";
   }
-  onResizeEnd = () => {
+  public onResizeEnd = () => {
     this.container.style.pointerEvents = "auto";
   }
-  componentDidMount() {
+  public componentDidMount() {
     Split.onResizeBegin.register(this.onResizeBegin);
     Split.onResizeEnd.register(this.onResizeEnd);
   }
-  componentWillUnmount() {
+  public componentWillUnmount() {
     Split.onResizeBegin.unregister(this.onResizeBegin);
     Split.onResizeEnd.unregister(this.onResizeEnd);
   }
-  run(project: Project, src: string) {
-    var iframe = document.createElement('iframe');
+  public run(project: Project, src: string) {
+    const iframe = document.createElement("iframe");
     iframe.className = "sandbox";
-    iframe.src = URL.createObjectURL(new Blob([src], { type: 'text/html' }));
+    iframe.src = URL.createObjectURL(new Blob([src], { type: "text/html" }));
     if (this.container.firstChild) {
       this.container.removeChild(this.container.firstChild);
     }
     this.container.appendChild(iframe);
-    let contentWindow = iframe.contentWindow as SandboxWindow;
-    let logger = this.props.logger;
+    const contentWindow = iframe.contentWindow as ISandboxWindow;
+    const logger = this.props.logger;
     // Hijack Console
-    let log = contentWindow.console.log;
+    const log = contentWindow.console.log;
     contentWindow.console.log = function(message: any) {
       logger.logLn(message);
       log.apply(contentWindow.console, arguments);
-    }
+    };
     contentWindow.getFileURL = (path: string) => {
-      let file = project.getFile(path);
+      const file = project.getFile(path);
       if (!file) {
         this.props.logger.logLn(`Cannot find file ${path}`, "error");
         return;
       }
-      let blob = new Blob([file.getData()], { type: mimeTypeForFileType(file.type) });
+      const blob = new Blob([file.getData()], { type: mimeTypeForFileType(file.type) });
       return window.URL.createObjectURL(blob);
     };
-    let ready = new Promise((resolve: (window: Window) => any) => {
+    const ready = new Promise((resolve: (window: Window) => any) => {
       (iframe as any).onready = () => {
         resolve(contentWindow);
-      }
+      };
     });
   }
-  render() {
+  public render() {
     return <div className="fill" ref={(ref) => this.setContainer(ref)}>
     </div>;
   }

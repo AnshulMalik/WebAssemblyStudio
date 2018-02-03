@@ -1,5 +1,4 @@
 import * as React from "react";
-import { EventDispatcher } from "../model";
 import { MouseEvent } from "react";
 
 export class MenuItem extends React.Component<{
@@ -7,16 +6,16 @@ export class MenuItem extends React.Component<{
   onClick: Function;
   icon?: JSX.Element;
 }, {}> {
-  render() {
+  public render() {
     return <div className="menu-entry" onClick={this.props.onClick as any}>
       <div className="icon">{this.props.icon}</div>
       <div className="label">{this.props.label}</div>
-    </div>
+    </div>;
   }
 }
 
 function inFirefox() {
-  return navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
+  return navigator.userAgent.toLowerCase().indexOf("firefox") > -1;
 }
 
 export class Menu extends React.Component<{
@@ -27,9 +26,9 @@ export class Menu extends React.Component<{
     y: number;
     visible: boolean;
   }> {
-  static active: Menu = null;
-  static ignoreNextWindowClickEvent = false;
-  static closeActive() {
+  public static active: Menu = null;
+  public static ignoreNextWindowClickEvent = false;
+  public static closeActive() {
     if (Menu.active) {
       Menu.active.hide();
       Menu.active = null;
@@ -39,10 +38,10 @@ export class Menu extends React.Component<{
     super(props);
     this.state = { x: 0, y: 0, visible: false };
   }
-  hide() {
+  public hide() {
     this.setState({ visible: false });
   }
-  onClick(e: MouseEvent<any>) {
+  public onClick(e: MouseEvent<any>) {
     if (this.props.activateOnLeftClick && Menu.active === this) {
       return;
     }
@@ -51,13 +50,15 @@ export class Menu extends React.Component<{
       Menu.ignoreNextWindowClickEvent = true;
     }
   }
-  onContextMenu(e: MouseEvent<any>) {
+  public onContextMenu(e: MouseEvent<any>) {
     Menu.closeActive();
     Menu.active = this;
-    let offset = 4;
-    let popupMenuWidth = 256;
-    let onRight = e.clientX + offset + popupMenuWidth < window.innerWidth;
-    let x = 0, y = 0;
+    const offset = 4;
+    const popupMenuWidth = 256;
+    const onRight = e.clientX + offset + popupMenuWidth < window.innerWidth;
+    let x = 0;
+    let y = 0;
+
     if (onRight) {
       x = e.clientX + offset;
     } else {
@@ -74,7 +75,7 @@ export class Menu extends React.Component<{
   // setMenu(menu: HTMLDivElement) {
   //   this.menu = menu;
   // }
-  render() {
+  public render() {
     return <div className="menu" onClick={this.onClick.bind(this)} onContextMenu={this.onContextMenu.bind(this)}>
       {this.state.visible && <div style={{ left: this.state.x, top: this.state.y }} className="menu popup">
         {this.props.items}

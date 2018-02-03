@@ -1,5 +1,5 @@
 import * as React from "react";
-import { ReactElement, ReactNode, MouseEvent, WheelEvent } from "react";
+import { MouseEvent, WheelEvent } from "react";
 import { clamp } from "../index";
 
 export class Tabs extends React.Component<{
@@ -8,17 +8,17 @@ export class Tabs extends React.Component<{
 }, {
     scrollLeft: number;
   }> {
-  refs: {
+  public refs: {
     container: HTMLDivElement;
-  }
+  };
   constructor(props: any) {
     super(props);
     this.state = {
-      scrollLeft: 0
-    }
+      scrollLeft: 0,
+    };
   }
-  onWheel = (e: WheelEvent<any>) => {
-    let delta = clamp(e.deltaY, -16, 16);
+  public onWheel = (e: WheelEvent<any>) => {
+    const delta = clamp(e.deltaY, -16, 16);
     let { scrollLeft } = this.state;
     scrollLeft += delta;
     // TODO: Work out the details of scrolling.
@@ -27,11 +27,11 @@ export class Tabs extends React.Component<{
     e.preventDefault();
   }
 
-  onDoubleClick = (e: MouseEvent<any>) => {
-    this.props.onDoubleClick && this.props.onDoubleClick();
+  public onDoubleClick = (e: MouseEvent<any>) => {
+    return this.props.onDoubleClick && this.props.onDoubleClick();
   }
 
-  render() {
+  public render() {
     return <div className="tabs-container">
       <div ref="container" className="tabs-tab-container" onWheel={this.onWheel} onDoubleClick={this.onDoubleClick}>
         {this.props.children}
@@ -41,12 +41,12 @@ export class Tabs extends React.Component<{
       </div>
     </div>;
   }
-  componentDidUpdate() {
+  public componentDidUpdate() {
     this.refs.container.scrollLeft = this.state.scrollLeft;
   }
 }
 
-export interface TabProps {
+export interface ITabProps {
   label?: string;
   value?: any;
   isActive?: boolean;
@@ -58,32 +58,31 @@ export interface TabProps {
   isMarked?: boolean;
 }
 
-export class Tab extends React.Component<TabProps, {}> {
-  render() {
-    let { onClick, onDoubleClick, onClose } = this.props;
+export class Tab extends React.Component<ITabProps, {}> {
+  public render() {
+    const { onClick, onDoubleClick, onClose } = this.props;
     let className = "tab";
-    if (this.props.isActive) className += " active";
-    if (this.props.isMarked) className += " marked";
-    if (this.props.isItalic) className += " italic";
+    if (this.props.isActive) { className += " active"; }
+    if (this.props.isMarked) { className += " marked"; }
+    if (this.props.isItalic) { className += " italic"; }
     return <div className={className} onClick={(e: MouseEvent<HTMLElement>) => {
       e.stopPropagation();
-      onClick && onClick(this.props.value);
+      return onClick && onClick(this.props.value);
     }}
     onDoubleClick={(e: MouseEvent<HTMLElement>) => {
       e.stopPropagation();
-      onDoubleClick && onDoubleClick(this.props.value);
+      return onDoubleClick && onDoubleClick(this.props.value);
     }}>
       {this.props.icon && <div className="icon"
         style={{
-          backgroundImage: `url(svg/${this.props.icon}.svg)`
+          backgroundImage: `url(svg/${this.props.icon}.svg)`,
         }}></div>
       }
       <div className="label">{this.props.label}</div>
       <div className="close" onClick={(e: MouseEvent<HTMLElement>) => {
         e.stopPropagation();
-        onClose && onClose(this.props.value);
+        return onClose && onClose(this.props.value);
       }}></div>
     </div>;
   }
 }
-

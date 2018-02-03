@@ -1,35 +1,34 @@
 import * as React from "react";
 
-import { Header } from "./Header";
+import { File, Project } from "../model";
 import { DirectoryTree } from "./DirectoryEntry";
+import { Header } from "./Header";
 import { WorkspaceEntry } from "./WorkspaceEntry";
-import { Project, File, Directory } from "../model";
 
-export interface WorkspaceProps {
+export interface IWorkspaceProps {
   /**
    * Active file.
    */
-  file: File,
-  project: Project,
+  file: File;
+  project: Project;
   onClickFile: (file: File) => void;
   onDoubleClickFile: (file: File) => void;
   makeMenuItems?: (file: File) => JSX.Element [];
 }
 
-
-export class Workspace extends React.Component<WorkspaceProps, {
+export class Workspace extends React.Component<IWorkspaceProps, {
   showProject: boolean,
-  showFiles: boolean
+  showFiles: boolean,
 }> {
   constructor(props: any) {
     super(props);
     this.state = {
       showProject: false,
-      showFiles: true
-    }
+      showFiles: true,
+    };
   }
-  render() {
-    let project = this.props.project;
+  public render() {
+    const project = this.props.project;
     return <div className="workspaceContainer">
       <Header />
       <WorkspaceEntry
@@ -41,12 +40,17 @@ export class Workspace extends React.Component<WorkspaceProps, {
         name="Files"
         expanded={this.state.showFiles}
         onClick={() => this.setState({ showFiles: !this.state.showFiles })}>
-        <DirectoryTree makeMenuItems={this.props.makeMenuItems} directory={project} value={this.props.file} onClickFile={(file: File) => {
-          this.props.onClickFile(file);
-        }}
-        onDoubleClickFile={(file: File) => {
-          this.props.onDoubleClickFile(file);
-        }}/>
+        <DirectoryTree
+          makeMenuItems={this.props.makeMenuItems}
+          directory={project}
+          value={this.props.file}
+          onClickFile={(file: File) => {
+            this.props.onClickFile(file);
+          }}
+          onDoubleClickFile={(file: File) => {
+            this.props.onDoubleClickFile(file);
+          }}
+        />
       </WorkspaceEntry>
     </div>;
   }

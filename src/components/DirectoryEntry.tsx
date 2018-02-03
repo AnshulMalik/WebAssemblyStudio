@@ -1,8 +1,6 @@
 import * as React from "react";
-import { Project, File, Directory, FileType, getIconForFileType } from "../model";
-import { Menu, MenuItem } from "./Menu";
-import { Service } from "../service";
-import { GoDelete, GoPencil, GoGear, GoVerified, GoFileCode, GoQuote, GoFileBinary, GoFile, GoDesktopDownload } from "./Icons";
+import { Directory, File, getIconForFileType } from "../model";
+import { Menu } from "./Menu";
 
 export class DirectoryEntry extends React.Component<{
   label: string,
@@ -14,13 +12,17 @@ export class DirectoryEntry extends React.Component<{
   icon: string;
   marked?: boolean;
 }, {}> {
-  onClick = () => {
-    this.props.onClick && this.props.onClick(this.props.value);
+  public onClick = () => {
+    if (this.props.onClick) {
+      this.props.onClick(this.props.value);
+    }
   }
-  onDoubleClick = () => {
-    this.props.onDoubleClick && this.props.onDoubleClick(this.props.value);
+  public onDoubleClick = () => {
+    if (this.props.onDoubleClick) {
+      this.props.onDoubleClick(this.props.value);
+    }
   }
-  render() {
+  public render() {
     let className = "directory-entry";
     if (this.props.active) {
       className += " active";
@@ -31,15 +33,15 @@ export class DirectoryEntry extends React.Component<{
     return <div className={className} onClick={this.onClick} onDoubleClick={this.onDoubleClick}>
       <div style={{ width: `calc(${this.props.depth}rem - 2px)` }}></div>
       <div className="icon" style={{
-        backgroundImage: `url(svg/${this.props.icon}.svg)`
+        backgroundImage: `url(svg/${this.props.icon}.svg)`,
       }}></div>
       <div className="label">{this.props.label}</div>
       <div className="close"></div>
-    </div>
+    </div>;
   }
 }
 
-export interface DirectoryTreeProps {
+export interface IDirectoryTreeProps {
   directory: Directory;
   value?: File;
   onClickFile: (file: File) => void;
@@ -47,18 +49,18 @@ export interface DirectoryTreeProps {
   makeMenuItems?: (file: File) => JSX.Element[];
 }
 
-export class DirectoryTree extends React.Component<DirectoryTreeProps, {
+export class DirectoryTree extends React.Component<IDirectoryTreeProps, {
 }> {
-  constructor(props: DirectoryTreeProps) {
+  constructor(props: IDirectoryTreeProps) {
     super(props);
   }
 
-  makeDirectoryEntries(directory: Directory): DirectoryEntry[] {
-    let self = this;
-    let entries: any[] = [];
-    let { makeMenuItems, onClickFile, onDoubleClickFile } = this.props;
+  public makeDirectoryEntries(directory: Directory): DirectoryEntry[] {
+    const self = this;
+    const entries: any[] = [];
+    const { makeMenuItems, onClickFile, onDoubleClickFile } = this.props;
     function go(directory: Directory, depth: number) {
-      directory.forEachFile(file => {
+      directory.forEachFile((file) => {
         let icon = getIconForFileType(file.type);
         if (file instanceof Directory && file.isOpen) {
           icon = "default_folder_opened";
@@ -78,7 +80,9 @@ export class DirectoryTree extends React.Component<DirectoryTreeProps, {
                 }
               }}
               onDoubleClick={() => {
-                onDoubleClickFile && onDoubleClickFile(file);
+                if (onDoubleClickFile) {
+                  onDoubleClickFile(file);
+                }
               }}
               active={self.props.value === file} /></Menu>);
         if (file instanceof Directory && file.isOpen) {
@@ -89,7 +93,7 @@ export class DirectoryTree extends React.Component<DirectoryTreeProps, {
     go(directory, 1);
     return entries;
   }
-  render() {
-    return <div>{this.makeDirectoryEntries(this.props.directory)}</div>
+  public render() {
+    return <div>{this.makeDirectoryEntries(this.props.directory)}</div>;
   }
 }

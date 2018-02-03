@@ -1,19 +1,15 @@
 import * as React from "react";
-import { Split, SplitOrientation, ISplitInfo } from "./Split";
+import { Split, SplitOrientation, SplitInfo } from "./Split";
 import { Editor } from "./Editor";
 import { Sandbox } from "./Sandbox";
 import { Tabs, Tab } from "./Tabs";
-import { GoThreeBars, GoFile } from "./Icons";
+import { GoThreeBars } from "./Icons";
 import { Button } from "./Button";
 import { View } from "./EditorPane";
 import {
   FileType,
-  getIconForFileType,
-  Problem,
   Project,
-  File,
-  Directory,
-  shallowCompare
+  File
 } from "../model";
 import { Problems } from "./Problems";
 
@@ -23,7 +19,7 @@ export class ControlCenter extends React.Component<{
     /**
      * Split state.
      */
-    splits: ISplitInfo[];
+    splits: SplitInfo[];
 
     /**
      * Visible pane.

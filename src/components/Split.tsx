@@ -6,7 +6,7 @@ const Cassowary = require("cassowary");
 
 // Cassowary.trace = true;
 
-interface ICassowaryVar {
+interface CassowaryVar {
   value: number;
 }
 
@@ -70,18 +70,18 @@ export enum SplitOrientation {
   Vertical,
 }
 
-export interface ISplitInfo {
+export interface SplitInfo {
   min?: number;
   max?: number;
   value?: number;
   resize?: "fixed" | "stretch";
 }
 
-function splitInfoEquals(a: ISplitInfo, b: ISplitInfo) {
+function splitInfoEquals(a: SplitInfo, b: SplitInfo) {
   return a.min === b.min && a.max === b.max && a.value === b.value && a.resize === b.resize;
 }
 
-function splitInfoArrayEquals(a: ISplitInfo[], b: ISplitInfo[]) {
+function splitInfoArrayEquals(a: SplitInfo[], b: SplitInfo[]) {
   if (a.length !== b.length) {
     return false;
   }
@@ -93,17 +93,17 @@ function splitInfoArrayEquals(a: ISplitInfo[], b: ISplitInfo[]) {
   return true;
 }
 
-export interface ISplitProps {
+export interface SplitProps {
   orientation: SplitOrientation;
-  onChange?: (splits: ISplitInfo[]) => void;
-  splits?: ISplitInfo[];
-  defaultSplit?: ISplitInfo;
+  onChange?: (splits: SplitInfo[]) => void;
+  splits?: SplitInfo[];
+  defaultSplit?: SplitInfo;
   children: React.ReactNode;
   name?: string; // TODO: Remove, for deubgging.
 }
 
-export class Split extends React.Component<ISplitProps, {
-  splits: ISplitInfo[];
+export class Split extends React.Component<SplitProps, {
+  splits: SplitInfo[];
 }> {
   public refs: {
     container: HTMLDivElement;
@@ -161,7 +161,7 @@ export class Split extends React.Component<ISplitProps, {
     e.preventDefault();
   }
 
-  public querySolver(splits: ISplitInfo[]) {
+  public querySolver(splits: SplitInfo[]) {
     const vars = this.vars;
     for (let i = 0; i < splits.length; i++) {
       splits[i].value = vars[i + 1].value - vars[i].value;
@@ -169,7 +169,7 @@ export class Split extends React.Component<ISplitProps, {
     // console.log(vars.map(v => v.value));
   }
 
-  public componentWillReceiveProps(nextProps: ISplitProps) {
+  public componentWillReceiveProps(nextProps: SplitProps) {
     // if (this.props.name === "Editors") {
     //   console.info("X: " );
     // }
@@ -187,7 +187,7 @@ export class Split extends React.Component<ISplitProps, {
       : this.refs.container.clientWidth;
   }
 
-  private canonicalizeSplits(props: ISplitProps): ISplitInfo[] {
+  private canonicalizeSplits(props: SplitProps): SplitInfo[] {
     const count = React.Children.count(props.children);
     const containerSize = this.getContainerSize(props.orientation);
     const splits = [];
@@ -202,18 +202,18 @@ export class Split extends React.Component<ISplitProps, {
       splits.push(assignObject(info, {
         min: 32,
         max: containerSize,
-      }) as ISplitInfo);
+      }) as SplitInfo);
     }
     return splits;
   }
 
   private solver: any;
-  private vars: ICassowaryVar[];
+  private vars: CassowaryVar[];
 
   /**
    * Initializes a Cassowary solver and the constraints based on split infos and container size.
    */
-  private setupSolver(splits: ISplitInfo[], containerSize: number) {
+  private setupSolver(splits: SplitInfo[], containerSize: number) {
     assert(this.index < 0, "Should not be in a dragging state.");
     const weak = Cassowary.Strength.weak;
     const medium = Cassowary.Strength.medium;
@@ -235,7 +235,7 @@ export class Split extends React.Component<ISplitProps, {
     // f     1               2           3   ...    l
     // |-----|---------------|-----------|----------|
 
-    const vars: ICassowaryVar[] = this.vars = [new Cassowary.Variable()];
+    const vars: CassowaryVar[] = this.vars = [new Cassowary.Variable()];
     const solver = this.solver = new Cassowary.SimplexSolver();
 
     // Create Cassowary variables, these the dragged position as an offset from the origin.
@@ -265,7 +265,7 @@ export class Split extends React.Component<ISplitProps, {
     this.suggestVarValues(splits);
   }
 
-  public suggestVarValues(splits: ISplitInfo[]) {
+  public suggestVarValues(splits: SplitInfo[]) {
     const vars = this.vars;
     for (let i = 0; i < vars.length - 1; i++) {
       const x = vars[i];

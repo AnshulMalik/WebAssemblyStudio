@@ -2,11 +2,10 @@ import * as React from "react";
 
 import { Header } from "./Header";
 import { DirectoryTree } from "./DirectoryTree";
-import { WorkspaceEntry } from "./WorkspaceEntry";
 import { Project, File, Directory } from "../model";
-import { SplitOrientation, ISplitInfo, Split } from "./Split";
+import { SplitOrientation, SplitInfo, Split } from "./Split";
 
-export interface IWorkspaceProps {
+export interface WorkspaceProps {
   /**
    * Active file.
    */
@@ -21,10 +20,10 @@ export interface IWorkspaceProps {
   onDoubleClickFile?: (file: File) => void;
 }
 
-export class Workspace extends React.Component<IWorkspaceProps, {
+export class Workspace extends React.Component<WorkspaceProps, {
   showProject: boolean;
   showFiles: boolean;
-  splits: ISplitInfo[];
+  splits: SplitInfo[];
 }> {
   constructor(props: any) {
     super(props);

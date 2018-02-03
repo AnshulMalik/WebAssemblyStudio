@@ -3,7 +3,6 @@ import * as ReactDOM from "react-dom";
 
 import { App } from "./components/App";
 import { Test } from "./components/Test";
-import { Service } from "./service";
 // import { ITree } from "./monaco-extra";
 
 declare var window: any;

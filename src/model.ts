@@ -2,7 +2,6 @@ import "minimatch";
 import { Minimatch } from "minimatch";
 import "monaco-editor";
 import { assert } from "./index";
-import { Service } from "./service";
 
 declare var window: any;
 
@@ -488,6 +487,6 @@ export class Project extends Directory {
   // }
 }
 
-export interface ILogger {
+export interface Logger {
   logLn(message: string, kind?: string): void;
 }

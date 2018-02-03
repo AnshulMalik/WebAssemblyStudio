@@ -3,14 +3,13 @@
     "extends": [
         "tslint:recommended"
     ],
-    "exclude": [ "./src/languages/*.ts"],
+    "exclude": [ "./src/languages/*.ts", "src/monaco-extra.ts" ],
     "jsRules": {},
     "rules": {
       "no-string-literal": false,
       "semicolon": [true, "always"],
       "no-bitwise": false,
       "interface-name": [true, "always-prefix"],
-      "no-unused-variable": true,
       "ban-types": false,
       "max-classes-per-file": false,
       "only-arrow-functions": false,
@@ -26,7 +25,11 @@
       "no-conditional-assignment": false,
       "member-access": false,
       "ordered-imports": false,
-      "arrow-parens": false
+      "arrow-parens": false,
+      "interface-name": false,
+      "object-literal-shorthand": false,
+      "no-empty-interface": false,
+      "variable-name": [true, "check-format", "allow-leading-underscore", "allow-pascal-case"]
     },
     "rulesDirectory": []
 }

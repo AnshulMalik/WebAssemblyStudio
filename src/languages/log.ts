@@ -1,6 +1,5 @@
 import "monaco-editor";
 
-
 export const Log = {
   MonarchTokensProvider: {
     tokenizer: {

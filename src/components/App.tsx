@@ -5,7 +5,7 @@ import { Workspace } from "./Workspace";
 import { Directory, File, FileType, Project } from "../model";
 import { Service } from "../service";
 import { EditorPane } from "./EditorPane";
-import { ISplitInfo, Split, SplitOrientation } from "./Split";
+import { SplitInfo, Split, SplitOrientation } from "./Split";
 
 import { assert, layout } from "../index";
 import { Log } from "../languages/log";
@@ -16,20 +16,12 @@ import { Gulpy } from "../gulpy";
 import { Button } from "./Button";
 import {
   GoBeaker,
-  GoDelete,
-  GoDesktopDownload,
-  GoFile,
-  GoFileBinary,
-  GoFileCode,
   GoGear,
   GoPencil,
-  GoQuote,
   GoRepoForked,
   GoRocket,
   GoThreeBars,
-  GoVerified,
 } from "./Icons";
-import { MenuItem } from "./Menu";
 
 import { Errors } from "../errors";
 import { Cton } from "../languages/cton";
@@ -37,9 +29,8 @@ import { X86 } from "../languages/x86";
 import { ControlCenter } from "./ControlCenter";
 import { EditFileDialog } from "./EditFileDialog";
 import { NewFileDialog } from "./NewFileDialog";
-import { ITemplate, NewProjectDialog } from "./NewProjectDialog";
+import { Template, NewProjectDialog } from "./NewProjectDialog";
 import { ShareDialog } from "./ShareDialog";
-import { Divider } from "./Widgets";
 
 export class Group {
   public file: File;
@@ -88,7 +79,7 @@ export class Group {
   }
 }
 
-export interface IAppState {
+export interface AppState {
   file: File;
   fiddle: string;
   groups: Group[];
@@ -118,31 +109,31 @@ export interface IAppState {
   /**
    * Primary workspace split state.
    */
-  workspaceSplits: ISplitInfo[];
+  workspaceSplits: SplitInfo[];
 
   /**
    * Secondary console split state.
    */
-  consoleSplits: ISplitInfo[];
+  consoleSplits: SplitInfo[];
 
   /**
    * Editor split state.
    */
-  editorSplits: ISplitInfo[];
+  editorSplits: SplitInfo[];
 
   showProblems: boolean;
   showSandbox: boolean;
 }
 
-export interface IAppProps {
+export interface AppProps {
   embed: boolean;
   fiddle: string;
 }
 
-export class App extends React.Component<IAppProps, IAppState> {
+export class App extends React.Component<AppProps, AppState> {
   public fiddle: string;
   public project: Project;
-  constructor(props: IAppProps) {
+  constructor(props: AppProps) {
     super(props);
     const group0 = new Group(null, null, []);
     this.state = {
@@ -490,7 +481,7 @@ export class App extends React.Component<IAppProps, IAppState> {
   /**
    * Remember workspace split.
    */
-  private workspaceSplit: ISplitInfo = null;
+  private workspaceSplit: SplitInfo = null;
 
   public makeToolbarButtons() {
     const toolbarButtons = [
@@ -599,7 +590,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         <NewProjectDialog isOpen={true} onCancel={() => {
           this.setState({ newProjectDialog: null });
         }}
-          onCreate={async (template: ITemplate) => {
+          onCreate={async (template: Template) => {
             if (!template.project) {
               this.logLn("Template doesn't contain a project definition.", "error");
             } else {

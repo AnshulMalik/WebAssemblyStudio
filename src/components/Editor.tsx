@@ -8,12 +8,12 @@ declare var window: any;
 // Lifecycle
 // https://cdn-images-1.medium.com/max/1600/0*VoYsN6eq7I_wjVV5.png
 
-export interface IMonacoProps {
+export interface MonacoProps {
   view: View;
   options?: monaco.editor.IEditorConstructionOptions;
 }
 
-export class Monaco extends React.Component<IMonacoProps, {}> {
+export class Monaco extends React.Component<MonacoProps, {}> {
   public editor: monaco.editor.IStandaloneCodeEditor;
   public container: HTMLDivElement;
 
@@ -36,14 +36,14 @@ export class Monaco extends React.Component<IMonacoProps, {}> {
     document.addEventListener("layout", this.layout);
   }
 
-  public componentWillReceiveProps(nextProps: IEditorProps) {
+  public componentWillReceiveProps(nextProps: EditorProps) {
     if (this.props.view !== nextProps.view) {
       // We're about to switch to a new file, save the view state.
       this.props.view.state = this.editor.saveViewState();
     }
   }
 
-  public shouldComponentUpdate(nextProps: IEditorProps, nextState: any) {
+  public shouldComponentUpdate(nextProps: EditorProps, nextState: any) {
     if (this.props.view === nextProps.view) {
       return false;
     }
@@ -135,12 +135,12 @@ export class Monaco extends React.Component<IMonacoProps, {}> {
   }
 }
 
-export interface IEditorProps {
+export interface EditorProps {
   view: View;
   options?: monaco.editor.IEditorConstructionOptions;
 }
 
-export class Editor extends React.Component<IEditorProps, {}> {
+export class Editor extends React.Component<EditorProps, {}> {
   public monaco: Monaco;
   public setMonaco(monaco: Monaco) {
     this.monaco = monaco;

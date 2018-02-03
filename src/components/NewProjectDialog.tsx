@@ -6,7 +6,7 @@ import { Button } from "./Button";
 import { GoFile, GoX, Icon } from "./Icons";
 import { ListBox, ListItem } from "./Widgets";
 
-export interface ITemplate {
+export interface Template {
   name: string;
   description: string;
   project: any;
@@ -15,13 +15,13 @@ export interface ITemplate {
 
 export class NewProjectDialog extends React.Component<{
   isOpen: boolean;
-  onCreate: (template: ITemplate) => void;
+  onCreate: (template: Template) => void;
   onCancel: () => void;
 }, {
     description: string;
     name: string;
-    template: ITemplate;
-    templates: ITemplate [];
+    template: Template;
+    templates: Template [];
   }> {
   constructor(props: any) {
     super(props);
@@ -66,7 +66,7 @@ export class NewProjectDialog extends React.Component<{
     this.setState({templates});
     this.setTemplate(templates[0]);
   }
-  async setTemplate(template: ITemplate) {
+  async setTemplate(template: Template) {
     const description = await Service.compileMarkdownToHtml(template.description);
     this.setState({template, description});
   }

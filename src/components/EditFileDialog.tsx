@@ -6,17 +6,17 @@ import { Button } from "./Button";
 import { GoPencil, GoX } from "./Icons";
 import { Spacer, TextInputBox } from "./Widgets";
 
-export interface IFileDialogProps {
+export interface FileDialogProps {
   isOpen: boolean;
   file: File;
   onChange: (name: string, description: string) => void;
   onCancel: () => void;
 }
-export class EditFileDialog extends React.Component<IFileDialogProps, {
+export class EditFileDialog extends React.Component<FileDialogProps, {
     description: string;
     name: string;
   }> {
-  constructor(props: IFileDialogProps) {
+  constructor(props: FileDialogProps) {
     super(props);
     this.state = {
       description: props.file.description,

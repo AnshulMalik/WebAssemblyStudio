@@ -1,8 +1,8 @@
 import * as React from "react";
-import { ILogger, mimeTypeForFileType, Project } from "../model";
+import { Logger, mimeTypeForFileType, Project } from "../model";
 import { Split } from "./Split";
 
-interface ISandboxWindow extends Window {
+interface SandboxWindow extends Window {
   /**
    * Creates an object URL to a Blob containing the file's data.
    */
@@ -10,7 +10,7 @@ interface ISandboxWindow extends Window {
 }
 
 export class Sandbox extends React.Component<{
-  logger: ILogger,
+  logger: Logger,
 }, {}> {
   public container: HTMLDivElement;
   private setContainer(container: HTMLDivElement) {
@@ -42,7 +42,7 @@ export class Sandbox extends React.Component<{
       this.container.removeChild(this.container.firstChild);
     }
     this.container.appendChild(iframe);
-    const contentWindow = iframe.contentWindow as ISandboxWindow;
+    const contentWindow = iframe.contentWindow as SandboxWindow;
     const logger = this.props.logger;
     // Hijack Console
     const log = contentWindow.console.log;

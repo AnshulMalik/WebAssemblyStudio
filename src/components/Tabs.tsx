@@ -46,7 +46,7 @@ export class Tabs extends React.Component<{
   }
 }
 
-export interface ITabProps {
+export interface TabProps {
   label?: string;
   value?: any;
   isActive?: boolean;
@@ -58,7 +58,7 @@ export interface ITabProps {
   isMarked?: boolean;
 }
 
-export class Tab extends React.Component<ITabProps, {}> {
+export class Tab extends React.Component<TabProps, {}> {
   public render() {
     const { onClick, onDoubleClick, onClose } = this.props;
     let className = "tab";

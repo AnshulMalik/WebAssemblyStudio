@@ -7,7 +7,7 @@ import { Tab, Tabs } from "./Tabs";
 import { setInterval } from "timers";
 import { layout } from "../index";
 import { Button } from "./Button";
-import { Split, SplitInfo, SplitOrientation } from "./Split";
+import { Split, ISplitInfo, SplitOrientation } from "./Split";
 
 class TabBasicTest extends React.Component<{
 }, {
@@ -127,7 +127,7 @@ class EditorPaneTest extends React.Component<{
 
 export class Test extends React.Component<{
 }, {
-  splits: SplitInfo [];
+  splits: ISplitInfo [];
   width: number;
   }> {
   constructor(props: any) {
@@ -186,7 +186,7 @@ export class Test extends React.Component<{
       <TabSelectTest />
       <EditorPaneTest /> */}
       <div style={{ width: this.state.width, height: 128, border: "solid 1px red" }}>
-        <Split orientation={SplitOrientation.Vertical} splits={this.state.splits} onChange={(splits: SplitInfo []) => {
+        <Split orientation={SplitOrientation.Vertical} splits={this.state.splits} onChange={(splits: ISplitInfo []) => {
           this.setState({splits});
         }}>
           <div>A</div>
@@ -195,15 +195,6 @@ export class Test extends React.Component<{
           <div>D</div>
         </Split>
       </div>
-        <Button label="Force Update" onClick={() => {
-          // this.setState({splits});
-          setInterval(() => {
-            const width = this.state.width - 10;
-            this.setState({width});
-          }, 100);
-
-        }}></Button>
-
       {/* <div>
         App Layout
       </div>

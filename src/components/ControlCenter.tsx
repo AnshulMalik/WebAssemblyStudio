@@ -1,94 +1,21 @@
 import * as React from "react";
-import { FileType, getIconForFileType, Problem } from "../model";
-import { Directory, File, Project } from "../model";
-import { Button } from "./Button";
+import { Split, SplitOrientation, ISplitInfo } from "./Split";
 import { Editor } from "./Editor";
-import { View } from "./EditorPane";
-import { GoThreeBars } from "./Icons";
 import { Sandbox } from "./Sandbox";
-import { ISplitInfo, Split, SplitOrientation } from "./Split";
-import { Tab, Tabs } from "./Tabs";
-
-export class TreeViewItem extends React.Component<{
-  label: string;
-  icon: string;
-  depth?: number;
-}, {
-  }> {
-  public render() {
-    return <div className="tree-view-item">
-      <div style={{ width: `calc(${this.props.depth}rem - 2px)` }}></div>
-      <div className="icon" style={{
-        backgroundImage: `url(svg/${this.props.icon}.svg)`,
-      }} />
-      <div className="label">{this.props.label}</div>
-    </div>;
-  }
-}
-
-export class TreeViewProblemItem extends React.Component<{
-  problem: Problem;
-  depth?: number;
-}, {
-  }> {
-  public render() {
-    const problem = this.props.problem;
-    const marker = problem.marker;
-    const position = `(${marker.startLineNumber}, ${marker.startColumn})`;
-    return <div className="tree-view-item">
-      <div style={{ width: `calc(${this.props.depth}rem - 2px)` }}></div>
-      <div className="icon" style={{
-        backgroundImage: `url(svg/${problem.severity + "-dark"}.svg)`,
-      }} />
-      <div className="label">{marker.message} <span className="problem-position">{position}</span></div>
-    </div>;
-  }
-}
-
-export class TreeView extends React.Component<{
-
-}, {
-  }> {
-  public render() {
-    return <div className="tree-view">
-      {this.props.children}
-    </div>;
-  }
-}
-
-export class Problems extends React.Component<{
-  project: Project;
-}, {
-  }> {
-  public componentDidMount() {
-    // TODO: Unregister.
-    this.props.project.onDidChangeProblems.register(() => {
-      this.forceUpdate();
-    });
-  }
-  public render() {
-    const treeViewItems: any = [];
-    function go(directory: Directory) {
-      directory.forEachFile((file) => {
-        if (file instanceof Directory) {
-          go(file);
-        } else {
-          // let depth = file.getDepth();
-          if (file.problems.length) {
-            treeViewItems.push(<TreeViewItem depth={0} icon={getIconForFileType(file.type)} label={file.name}></TreeViewItem>);
-            file.problems.forEach((problem) => {
-              treeViewItems.push(<TreeViewProblemItem depth={1} problem={problem} />);
-            });
-          }
-        }
-      });
-    }
-    go(this.props.project);
-    return <TreeView>
-      {treeViewItems}
-    </TreeView>;
-  }
-}
+import { Tabs, Tab } from "./Tabs";
+import { GoThreeBars, GoFile } from "./Icons";
+import { Button } from "./Button";
+import { View } from "./EditorPane";
+import {
+  FileType,
+  getIconForFileType,
+  Problem,
+  Project,
+  File,
+  Directory,
+  shallowCompare
+} from "../model";
+import { Problems } from "./Problems";
 
 export class ControlCenter extends React.Component<{
   project: Project;

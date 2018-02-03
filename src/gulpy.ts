@@ -40,11 +40,10 @@ class GulpySession {
     this.tasks.set(task, instance);
     return instance;
   }
-  public runInstance(instance: TaskInstance): Promise<any> {
-    const dependencies = instance.task.dependencies.map((x) => this.ensureInstance(x));
-    return Promise.all(dependencies.map((x) => this.runInstance(x))).then((results) => {
-      return instance.makePromise();
-    });
+  async runInstance(instance: TaskInstance): Promise<any> {
+    const dependencies = instance.task.dependencies.map(x => this.ensureInstance(x));
+    await Promise.all(dependencies.map(x => this.runInstance(x)));
+    return instance.makePromise();
   }
   public run(task: Task): Promise<any> {
     return this.runInstance(this.ensureInstance(task));

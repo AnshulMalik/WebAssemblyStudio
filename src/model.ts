@@ -2,6 +2,7 @@ import "minimatch";
 import { Minimatch } from "minimatch";
 import "monaco-editor";
 import { assert } from "./index";
+import { Service } from "./service";
 
 declare var window: any;
 
@@ -171,35 +172,43 @@ function monacoSeverityToString(severity: monaco.Severity) {
     case monaco.Severity.Ignore: return "ignore";
   }
 }
-export class Problem {
-  public static fromMarker(marker: monaco.editor.IMarkerData) {
-    return new Problem(
-      `${marker.message} (${marker.startLineNumber}, ${marker.startColumn})`,
-      monacoSeverityToString(marker.severity),
-      marker);
-  }
 
+let nextKey = 0;
+function getNextKey() {
+  return nextKey++;
+}
+export class Problem {
+  readonly key = String(getNextKey());
   constructor(
+    public file: File,
     public description: string,
     public severity: "error" | "warning" | "info" | "ignore",
     public marker?: monaco.editor.IMarkerData) {
   }
+
+  static fromMarker(file: File, marker: monaco.editor.IMarkerData) {
+    return new Problem(
+      file,
+      `${marker.message} (${marker.startLineNumber}, ${marker.startColumn})`,
+      monacoSeverityToString(marker.severity),
+      marker);
+  }
 }
 
 export class File {
-  public name: string;
-  public type: FileType;
-  public data: string | ArrayBuffer;
-  public parent: Directory;
-  public isDirty: boolean = false;
-  public isBufferReadOnly: boolean = false;
-  public readonly onDidChangeData = new EventDispatcher("File Data Change");
-  public readonly onDidChangeBuffer = new EventDispatcher("File Buffer Change");
-  public readonly onDidChangeProblems = new EventDispatcher("File Problems Change");
-  public readonly key = String(Math.random());
-  public readonly buffer?: monaco.editor.IModel;
-  public description: string;
-  public problems: Problem[] = [];
+  name: string;
+  type: FileType;
+  data: string | ArrayBuffer;
+  parent: Directory;
+  isDirty: boolean = false;
+  isBufferReadOnly: boolean = false;
+  readonly onDidChangeData = new EventDispatcher("File Data Change");
+  readonly onDidChangeBuffer = new EventDispatcher("File Buffer Change");
+  readonly onDidChangeProblems = new EventDispatcher("File Problems Change");
+  readonly key = String(getNextKey());
+  readonly buffer?: monaco.editor.IModel;
+  description: string;
+  problems: Problem[] = [];
   constructor(name: string, type: FileType) {
     this.name = name;
     this.type = type;
@@ -232,20 +241,14 @@ export class File {
       file = file.parent;
     }
   }
-  public getEmitOutput(): Promise<string> {
+  async getEmitOutput(): Promise<any> {
     const model = this.buffer;
     if (this.type !== FileType.TypeScript) {
       return Promise.resolve("");
     }
-    return new Promise((resolve, reject) => {
-      monaco.languages.typescript.getTypeScriptWorker().then(function(worker) {
-        worker(model.uri).then(function(client: any) {
-          client.getEmitOutput(model.uri.toString()).then(function(r: any) {
-            resolve(r);
-          });
-        });
-      });
-    });
+    const worker = await monaco.languages.typescript.getTypeScriptWorker();
+    const client = await worker(model.uri);
+    return client.getEmitOutput(model.uri.toString());
   }
   public setData(data: string | ArrayBuffer, setBuffer = true) {
     this.data = data;
@@ -272,11 +275,13 @@ export class File {
   }
   public getProject(): Project {
     let parent = this.parent;
-    while (parent.parent) {
-      parent = parent.parent;
-    }
-    if (parent instanceof Project) {
-      return parent;
+    if (parent) {
+      while (parent.parent) {
+        parent = parent.parent;
+      }
+      if (parent instanceof Project) {
+        return parent;
+      }
     }
     return null;
   }
@@ -315,10 +320,10 @@ export class File {
 }
 
 export class Directory extends File {
-  public name: string;
-  private children: File[] = [];
-  public isOpen: boolean = true;
-  public readonly onDidChangeChildren = new EventDispatcher("Directory Changed ");
+  name: string;
+  children: File[] = [];
+  isOpen: boolean = true;
+  readonly onDidChangeChildren = new EventDispatcher("Directory Changed ");
   constructor(name: string) {
     super(name, FileType.Directory);
   }
@@ -329,10 +334,35 @@ export class Directory extends File {
       directory = directory.parent;
     }
   }
-  public forEachFile(fn: (file: File) => void) {
-    this.children.forEach(fn);
+  forEachFile(fn: (file: File) => void, recurse = false) {
+    if (recurse) {
+      this.children.forEach((file: File) => {
+        if (file instanceof Directory) {
+          file.forEachFile(fn, recurse);
+        }
+        fn(file);
+      });
+    } else {
+      this.children.forEach(fn);
+    }
   }
-  public mapEachFile<T>(fn: (file: File) => T): T[] {
+  //     function go(directory: Directory) {
+//       directory.forEachFile((file) => {
+//         if (file instanceof Directory) {
+//           go(file);
+//         } else {
+//           // let depth = file.getDepth();
+//           if (file.problems.length) {
+//             treeViewItems.push(<TreeViewItem depth={0} icon={getIconForFileType(file.type)} label={file.name}></TreeViewItem>);
+//             file.problems.forEach((problem) => {
+//               treeViewItems.push(<TreeViewProblemItem depth={1} problem={problem} />);
+//             });
+//           }
+//         }
+//       });
+//     }
+//     go(this.props.project);
+  mapEachFile<T>(fn: (file: File) => T): T[] {
     return this.children.map(fn);
   }
   public addFile(file: File) {

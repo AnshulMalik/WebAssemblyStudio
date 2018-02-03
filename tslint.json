@@ -23,7 +23,10 @@
       "no-eval": false,
       "max-line-length": [true, { "ignore-pattern": "<path([/s/S]*?)/>" }],
       "no-shadowed-variable": false,
-      "no-conditional-assignment": false
+      "no-conditional-assignment": false,
+      "member-access": false,
+      "ordered-imports": false,
+      "arrow-parens": false
     },
     "rulesDirectory": []
 }

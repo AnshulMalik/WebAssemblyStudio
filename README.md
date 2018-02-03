@@ -1,5 +1,7 @@
-WasmFiddle
+Web Assembly Studio
 ====
+[![Build Status](https://travis-ci.org/mbebenita/WebAssemblyStudio.svg?branch=master)](https://travis-ci.org/mbebenita/WebAssemblyStudio)
+
 This repository contains the Web Assembly Studio website source code.
 
 Running your own local copy of the website

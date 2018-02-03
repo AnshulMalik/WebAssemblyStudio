@@ -6,7 +6,8 @@
   "scripts": {
     "build": "webpack --config webpack.config.js",
     "build-watch": "webpack --watch --config webpack.config.js",
-    "dev-server": "webpack-dev-server --config webpack.config.js"
+    "dev-server": "webpack-dev-server --config webpack.config.js",
+    "test": "./node_modules/.bin/tslint -p ."
   },
   "repository": {
     "type": "git",
@@ -34,14 +35,15 @@
     "react-icons": "^2.2.7",
     "react-modal": "^3.1.10",
     "react-split-pane": "^0.1.71",
-    "wasmparser": "^0.5.2"
+    "wasmparser": "^0.5.3"
   },
   "devDependencies": {
     "@types/react": "^16.0.28",
     "@types/react-dom": "^16.0.3",
     "awesome-typescript-loader": "^3.4.1",
     "source-map-loader": "^0.2.3",
-    "typescript": "^2.6.2",
+    "tslint": "^5.9.1",
+    "typescript": "^2.7.1",
     "webpack": "^3.10.0",
     "webpack-dev-server": "^2.11.0"
   }

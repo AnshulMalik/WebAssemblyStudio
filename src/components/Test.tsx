@@ -1,22 +1,12 @@
 import * as React from "react";
-import * as ReactDOM from "react-dom";
-import * as SplitPane from "react-split-pane";
-import { Workspace } from "./Workspace";
-import { Console } from "./Console";
-import { Editor } from "./Editor";
-import { Header } from "./Header";
-import { Toolbar } from "./Toolbar";
 
-import { Tabs, Tab } from "./Tabs";
+import { File, FileType } from "../model";
 import { EditorPane, View } from "./EditorPane";
-import { Project, File, FileType } from "../model";
-import { App } from "./App";
+import { Tab, Tabs } from "./Tabs";
 
-import { layout, assert } from "../index";
 import { setInterval } from "timers";
-import { Split, SplitOrientation, SplitInfo } from "./Split";
-import { Z_STREAM_END } from "zlib";
-import { Button } from "./Button";
+import { layout } from "../index";
+import { Split, SplitInfo, SplitOrientation } from "./Split";
 
 class TabBasicTest extends React.Component<{
 }, {
@@ -25,7 +15,7 @@ class TabBasicTest extends React.Component<{
   constructor(props: any) {
     super(props);
   }
-  render() {
+  public render() {
     return <div>
       <Tabs>
         <Tab label="A"></Tab>
@@ -48,10 +38,10 @@ class TabSelectTest extends React.Component<{
     super(props);
     this.state = {
       selectedTab: 0,
-      tabs: ["Arabaalelealel", "Bannanananana", "Copaoappaoasasoas", "Dendododlaoadad"]
-    }
+      tabs: ["Arabaalelealel", "Bannanananana", "Copaoappaoasasoas", "Dendododlaoadad"],
+    };
   }
-  render() {
+  public render() {
     return <div>
       <Tabs>
         {this.state.tabs.map((x, i) => {
@@ -59,20 +49,19 @@ class TabSelectTest extends React.Component<{
             onClick={() => {
               this.setState({ selectedTab: i });
             }}
-            isActive={i === this.state.selectedTab} />
+            isActive={i === this.state.selectedTab} />;
         })}
       </Tabs>
     </div>;
   }
 }
 
-
 class TabSelectRandomTest extends TabSelectTest {
   constructor(props: any) {
     super(props);
     setInterval(() => {
       this.setState({
-        selectedTab: Math.random() * this.state.tabs.length | 0
+        selectedTab: Math.random() * this.state.tabs.length || 0,
       });
     }, 200);
   }
@@ -80,23 +69,23 @@ class TabSelectRandomTest extends TabSelectTest {
 
 class TabBasicScrollTest extends React.Component<{
 }, {}> {
-  render() {
+  public render() {
     return <div style={{ width: 512 }}>
       <TabBasicTest />
-    </div>
+    </div>;
   }
 }
 
 class EditorPaneTest extends React.Component<{
 }, {
     file: File,
-    files: File[]
+    files: File[],
   }> {
   constructor(props: any) {
     super(props);
-    let a = new File("A", FileType.JavaScript);
-    let b = new File("B", FileType.JavaScript);
-    let c = new File("C", FileType.JavaScript);
+    const a = new File("A", FileType.JavaScript);
+    const b = new File("B", FileType.JavaScript);
+    const c = new File("C", FileType.JavaScript);
 
     a.onDidChangeData.register(() => this.forceUpdate());
     b.onDidChangeData.register(() => this.forceUpdate());
@@ -104,34 +93,34 @@ class EditorPaneTest extends React.Component<{
 
     this.state = {
       file: a,
-      files: [a, b, c]
-    }
+      files: [a, b, c],
+    };
   }
-  render() {
+  public render() {
     return <div style={{ height: 128 }}>
       <EditorPane preview={this.state.file} file={this.state.file} files={this.state.files}
         onNewFile={
           () => {
-            let { files } = this.state;
-            let f = new File("X", FileType.JavaScript);
+            const { files } = this.state;
+            const f = new File("X", FileType.JavaScript);
             files.push(f);
             // files.splice(i, 1);
             this.setState({ files, file: files[files.length - 1] });
           }
         }
         onClickFile={
-          (x) => { this.setState({ file: x }) }
+          (x) => { this.setState({ file: x }); }
         }
         onClose={
           (x) => {
-            let { files } = this.state;
-            let i = files.indexOf(x);
+            const { files } = this.state;
+            const i = files.indexOf(x);
             files.splice(i, 1);
             this.setState({ files, file: files[0] });
           }
         }
       />
-    </div>
+    </div>;
   }
 }
 
@@ -144,16 +133,16 @@ export class Test extends React.Component<{
     super(props);
     this.state = {
       splits: [
-        { min: 128, max: 192, value: 130 }, {}, {}, { value: 64 }
+        { min: 128, max: 192, value: 130 }, {}, {}, { value: 64 },
       ],
-      width: 600
+      width: 600,
     };
   }
-  componentDidMount() {
+  public componentDidMount() {
     layout();
   }
-  render() {
-    let view = new View(new File("X", FileType.JavaScript), null);
+  public render() {
+    const view = new View(new File("X", FileType.JavaScript), null);
     view.file.buffer.setValue(`
     render() {
       let { splits } = this.state;
@@ -176,8 +165,13 @@ export class Test extends React.Component<{
         }
         children.push(<div key={i} className="split-pane" style={style}>{child}</div>);
         if (i < count - 1) {
-          children.push(<div key={"split:" + i} className={resizerClassName} onMouseDown={this.onResizerMouseDown.bind(this, i)}>
-          </div>);
+          children.push(
+            <div
+              key={"split:" + i}
+              className={resizerClassName}
+              onMouseDown={this.onResizerMouseDown.bind(this, i)}>
+            </div>
+          );
         }
       });
       return <div className="split" ref="container" style={{ flexDirection: isHorizontal ? "column" : "row" }}>
@@ -200,15 +194,6 @@ export class Test extends React.Component<{
           <div>D</div>
         </Split>
       </div>
-        <Button label="Force Update" onClick={() => {
-          // this.setState({splits});
-          setInterval(() => {
-            let width = this.state.width - 10;
-            this.setState({width});
-          }, 100);
-          
-        }}></Button>
-
       {/* <div>
         App Layout
       </div>
@@ -239,4 +224,4 @@ export class Test extends React.Component<{
       {/* <TabSelectRandomTest /> */}
     </div>;
   }
-}                                                                                                                                                                                                                                                                                                 
+}

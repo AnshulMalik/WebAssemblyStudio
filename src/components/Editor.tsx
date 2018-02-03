@@ -1,8 +1,7 @@
-import * as React from "react";
-import { Project, File, Directory, FileType, languageForFileType } from "../model";
-import { View, EditorPane } from "./EditorPane";
-import { objectId } from "../index";
 import "monaco-editor";
+import * as React from "react";
+import { File, languageForFileType, Project } from "../model";
+import { View } from "./EditorPane";
 
 declare var window: any;
 
@@ -10,20 +9,20 @@ declare var window: any;
 // https://cdn-images-1.medium.com/max/1600/0*VoYsN6eq7I_wjVV5.png
 
 export interface MonacoProps {
-  view: View,
-  options?: monaco.editor.IEditorConstructionOptions
+  view: View;
+  options?: monaco.editor.IEditorConstructionOptions;
 }
 
 export class Monaco extends React.Component<MonacoProps, {}> {
-  editor: monaco.editor.IStandaloneCodeEditor;
-  container: HTMLDivElement;
+  public editor: monaco.editor.IStandaloneCodeEditor;
+  public container: HTMLDivElement;
 
-  revealLastLine() {
+  public revealLastLine() {
     this.editor.revealLine(this.editor.getModel().getLineCount());
   }
 
-  componentDidMount() {
-    let { view } = this.props;
+  public componentDidMount() {
+    const { view } = this.props;
     if (view) {
       this.ensureEditor();
       this.editor.setModel(view.file.buffer);
@@ -37,22 +36,22 @@ export class Monaco extends React.Component<MonacoProps, {}> {
     document.addEventListener("layout", this.layout);
   }
 
-  componentWillReceiveProps(nextProps: EditorProps) {
+  public componentWillReceiveProps(nextProps: EditorProps) {
     if (this.props.view !== nextProps.view) {
       // We're about to switch to a new file, save the view state.
       this.props.view.state = this.editor.saveViewState();
     }
   }
 
-  shouldComponentUpdate(nextProps: EditorProps, nextState: any) {
+  public shouldComponentUpdate(nextProps: EditorProps, nextState: any) {
     if (this.props.view === nextProps.view) {
       return false;
     }
     return true;
   }
 
-  componentDidUpdate() {
-    let { view } = this.props;
+  public componentDidUpdate() {
+    const { view } = this.props;
     if (view) {
       this.ensureEditor();
       this.editor.setModel(view.file.buffer);
@@ -61,8 +60,8 @@ export class Monaco extends React.Component<MonacoProps, {}> {
     }
   }
 
-  timeout = 0;
-  layout = () => {
+  public timeout = 0;
+  public layout = () => {
     if (this.timeout) {
       window.clearTimeout(this.timeout);
     }
@@ -72,29 +71,29 @@ export class Monaco extends React.Component<MonacoProps, {}> {
     }, 10);
   }
 
-  componentWillUnmount() {
+  public componentWillUnmount() {
     document.removeEventListener("layout", this.layout);
     // We're about to close the editor, save the view state.
     this.props.view.state = this.editor.saveViewState();
   }
 
-  registerActions() {
-    let self = this;
+  public registerActions() {
+    const self = this;
     this.editor.addAction({
-      id: 'save',
-      label: 'Save',
+      id: "save",
+      label: "Save",
       keybindings: [
-        monaco.KeyMod.CtrlCmd | monaco.KeyCode.KEY_S
+        monaco.KeyMod.CtrlCmd | monaco.KeyCode.KEY_S,
       ],
       precondition: null,
       keybindingContext: null,
-      run: function () {
-        let view = self.props.view;
+      run() {
+        const view = self.props.view;
         if (view && !view.file.isBufferReadOnly) {
           view.file.save();
         }
         return null;
-      }
+      },
     });
 
     this.editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KEY_B, function() {
@@ -107,12 +106,12 @@ export class Monaco extends React.Component<MonacoProps, {}> {
 
   }
   private ensureEditor() {
-    if (this.editor) return;
-    let options = Object.assign({
+    if (this.editor) { return; }
+    const options = Object.assign({
       value: "",
       theme: "fiddle-theme",
       minimap: {
-        enabled: false
+        enabled: false,
       },
       fontWeight: "bold",
       renderLineHighlight: "none",
@@ -125,32 +124,32 @@ export class Monaco extends React.Component<MonacoProps, {}> {
     console.info("Created a new Monaco editor.");
   }
   private setContainer(container: HTMLDivElement) {
-    if (container == null) return;
+    if (container == null) { return; }
     if (this.container !== container) {
       // ...
     }
     this.container = container;
   }
-  render() {
+  public render() {
     return <div className="fill" ref={(ref) => this.setContainer(ref)}></div>;
   }
 }
 
 export interface EditorProps {
-  view: View,
-  options?: monaco.editor.IEditorConstructionOptions
+  view: View;
+  options?: monaco.editor.IEditorConstructionOptions;
 }
 
 export class Editor extends React.Component<EditorProps, {}> {
-  monaco: Monaco;
-  setMonaco(monaco: Monaco) {
+  public monaco: Monaco;
+  public setMonaco(monaco: Monaco) {
     this.monaco = monaco;
   }
-  revealLastLine() {
+  public revealLastLine() {
     this.monaco.revealLastLine();
   }
-  render() {
-    let file = this.props.view.file;
+  public render() {
+    const file = this.props.view.file;
     if (file.description) {
       return <div className="fill">
         <div className="editor-status-bar">
@@ -159,11 +158,11 @@ export class Editor extends React.Component<EditorProps, {}> {
         <div className="editor-container">
           <Monaco ref={(ref) => this.setMonaco(ref)} view={this.props.view} options={this.props.options} />
         </div>;
-      </div>
+      </div>;
     } else {
       return <div className="fill">
         <Monaco ref={(ref) => this.setMonaco(ref)} view={this.props.view} options={this.props.options} />
-      </div>
+      </div>;
     }
   }
 }

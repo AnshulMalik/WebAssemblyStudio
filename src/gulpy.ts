@@ -1,11 +1,9 @@
-import { resolve } from "url";
-
 export type PromiseMaker = () => Promise<any>;
 
 class Task {
-  dependencies: Task [];
-  promiseMaker: PromiseMaker;
-  
+  public dependencies: Task [];
+  public promiseMaker: PromiseMaker;
+
   constructor(dependencies: Task [], promiseMaker: PromiseMaker) {
     this.dependencies = dependencies;
     this.promiseMaker = promiseMaker;
@@ -13,13 +11,13 @@ class Task {
 }
 
 class TaskInstance {
-  task: Task;
-  promise: Promise<any>;
+  public task: Task;
+  public promise: Promise<any>;
   constructor(task: Task) {
     this.task = task;
     this.promise = null;
   }
-  makePromise(): Promise<any> {
+  public makePromise(): Promise<any> {
     if (this.promise) {
       return this.promise;
     }
@@ -33,7 +31,7 @@ class GulpySession {
   constructor(gulpy: Gulpy) {
     this.gulpy = gulpy;
   }
-  ensureInstance(task: Task): TaskInstance {
+  public ensureInstance(task: Task): TaskInstance {
     let instance = this.tasks.get(task);
     if (instance) {
       return instance;
@@ -42,51 +40,46 @@ class GulpySession {
     this.tasks.set(task, instance);
     return instance;
   }
-  runInstance(instance: TaskInstance): Promise<any> {
-    let dependencies = instance.task.dependencies.map(x => this.ensureInstance(x));
-    return Promise.all(dependencies.map(x => this.runInstance(x))).then((results) => {
-      return instance.makePromise();
-    });
+  async runInstance(instance: TaskInstance): Promise<any> {
+    const dependencies = instance.task.dependencies.map(x => this.ensureInstance(x));
+    await Promise.all(dependencies.map(x => this.runInstance(x)));
+    return instance.makePromise();
   }
-  run(task: Task): Promise<any> {
-    return this.runInstance(this.ensureInstance(task))
+  public run(task: Task): Promise<any> {
+    return this.runInstance(this.ensureInstance(task));
   }
 }
 export class Gulpy {
   private tasks: { [name: string]: Task } = {};
   private session: GulpySession;
-  
-  constructor() {
 
-  }
-
-  task(name: string, fn: PromiseMaker): void;
-  task(name: string, dependencies: string[], fn: PromiseMaker): void;
-  task(name: string, a: string [] | PromiseMaker, b?: PromiseMaker): void {
+  public task(name: string, fn: PromiseMaker): void;
+  public task(name: string, dependencies: string[], fn: PromiseMaker): void;
+  public task(name: string, a: string [] | PromiseMaker, b?: PromiseMaker): void {
     let dependencies: string [] = [];
     let fn: PromiseMaker = null;
-    if (arguments.length == 3) {
+    if (arguments.length === 3) {
       dependencies = a as string [];
       fn = b;
-    } else if (arguments.length == 2) {
+    } else if (arguments.length === 2) {
       fn = a as PromiseMaker;
     }
-    this.tasks[name] = new Task(dependencies.map(x => this.tasks[x]), fn);
+    this.tasks[name] = new Task(dependencies.map((x) => this.tasks[x]), fn);
   }
-  series(tasks: string[]): PromiseMaker {
+  public series(tasks: string[]): PromiseMaker {
     return null;
   }
-  parallel(tasks: string[]): PromiseMaker {
+  public parallel(tasks: string[]): PromiseMaker {
     return null;
   }
-  run(name: string) {
-    let session = new GulpySession(this);
+  public run(name: string) {
+    const session = new GulpySession(this);
     session.run(this.tasks[name]);
   }
 }
 
 export function testGulpy() {
-  let gulp = new Gulpy();
+  const gulp = new Gulpy();
 
   gulp.task("b", () => {
     return new Promise((resolve, reject) => {
@@ -106,7 +99,7 @@ export function testGulpy() {
     });
   });
 
-   gulp.task("a", ["b", "c"], () => {
+  gulp.task("a", ["b", "c"], () => {
     return new Promise((resolve, reject) => {
       setTimeout(() => {
         console.log("Running Task A " + performance.now());

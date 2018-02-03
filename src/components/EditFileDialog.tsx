@@ -1,45 +1,44 @@
 import * as React from "react";
-import { Service } from "../service";
+import { ChangeEvent } from "react";
 import * as ReactModal from "react-modal";
+import { Directory, File } from "../model";
 import { Button } from "./Button";
-import { GoGear, GoFile, GoX, Icon, GoPencil } from "./Icons";
-import { File, FileType, Directory, extensionForFileType, nameForFileType } from "../model";
-import { KeyboardEvent, ChangeEvent, ChangeEventHandler } from "react";
-import { ListBox, ListItem, TextInputBox, Spacer } from "./Widgets";
+import { GoPencil, GoX } from "./Icons";
+import { Spacer, TextInputBox } from "./Widgets";
 
-interface EditFileDialogProps {
+export interface FileDialogProps {
   isOpen: boolean;
-  file: File
+  file: File;
   onChange: (name: string, description: string) => void;
   onCancel: () => void;
 }
-export class EditFileDialog extends React.Component<EditFileDialogProps, {
+export class EditFileDialog extends React.Component<FileDialogProps, {
     description: string;
     name: string;
   }> {
-  constructor(props: EditFileDialogProps) {
+  constructor(props: FileDialogProps) {
     super(props);
     this.state = {
       description: props.file.description,
-      name: props.file.name
+      name: props.file.name,
     };
   }
-  onChangeName = (event: ChangeEvent<any>) => {
+  public onChangeName = (event: ChangeEvent<any>) => {
     this.setState({ name: event.target.value });
   }
-  onChangeDescription = (event: ChangeEvent<any>) => {
+  public onChangeDescription = (event: ChangeEvent<any>) => {
     this.setState({ description: event.target.value });
   }
-  error() {
-    let directory = this.props.file.parent;
-    let file = directory.getImmediateChild(this.state.name);
+  public error() {
+    const directory = this.props.file.parent;
+    const file = directory.getImmediateChild(this.state.name);
     if (file && file !== this.props.file) {
       return `A file with the same name already exists.`;
     }
     return "";
   }
-  render() {
-    let file = this.props.file;
+  public render() {
+    const file = this.props.file;
     return <ReactModal
       isOpen={this.props.isOpen}
       contentLabel={"Edit " + (file instanceof Directory ? "Directory" : "File")}
@@ -61,7 +60,7 @@ export class EditFileDialog extends React.Component<EditFileDialogProps, {
             this.props.onCancel();
           }} />
           <Button icon={<GoPencil />} label="Edit" title="Edit" isDisabled={!this.state.name || !!this.error()} onClick={() => {
-            this.props.onChange && this.props.onChange(this.state.name, this.state.description);
+            return this.props.onChange && this.props.onChange(this.state.name, this.state.description);
           }} />
         </div>
       </div>

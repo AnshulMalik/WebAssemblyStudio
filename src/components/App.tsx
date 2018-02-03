@@ -1,6 +1,5 @@
 import * as React from "react";
 import * as ReactDOM from "react-dom";
-import * as SplitPane from "react-split-pane";
 import { Workspace } from "./Workspace";
 import { Console } from "./Console";
 import { Editor } from "./Editor";
@@ -179,18 +178,16 @@ export class App extends React.Component<AppProps, AppState> {
     });
     this.setState({ group: groups[0], groups });
   }
-  initializeProject(): any {
+  async initializeProject() {
     this.project = new Project();
     if (this.state.fiddle) {
-      Service.loadJSON(this.state.fiddle).then((json) => {
-        Service.loadProject(json, this.project).then((json) => {
-          if (false && json.openedFiles) {
-            // this.loadProject(json);
-          }
-          this.logLn("Project Loaded ...");
-          this.forceUpdate();
-        });
-      });
+      let json = await Service.loadJSON(this.state.fiddle);
+      json = await Service.loadProject(json, this.project);
+      if (false && (json as any).openedFiles) {
+        // this.loadProject(json);
+      }
+      this.logLn("Project Loaded ...");
+      this.forceUpdate();
     }
     this.project.onDidChangeBuffer.register(() => {
       this.forceUpdate();
@@ -215,7 +212,7 @@ export class App extends React.Component<AppProps, AppState> {
   //   return false;
   // }
 
-  registerLanguages() {
+  async registerLanguages() {
     monaco.editor.defineTheme("fiddle-theme", {
       base: 'vs-dark',
       inherit: true,
@@ -271,32 +268,24 @@ export class App extends React.Component<AppProps, AppState> {
       // monaco.languages.registerHoverProvider("cton", Cton.HoverProvider);
     });
 
-    fetch("lib/lib.es6.d.ts").then((response: any) => {
-      response.text().then((src: string) => {
-        monaco.languages.typescript.typescriptDefaults.addExtraLib(src);
-      })
-    });
+    let response = await fetch("lib/lib.es6.d.ts");
+    monaco.languages.typescript.typescriptDefaults.addExtraLib(await response.text());
 
-    fetch("lib/fiddle.d.ts").then((response: any) => {
-      response.text().then((src: string) => {
-        monaco.languages.typescript.typescriptDefaults.addExtraLib(src);
-      })
-    });
+    response = await fetch("lib/fiddle.d.ts");
+    monaco.languages.typescript.typescriptDefaults.addExtraLib(await response.text());
 
     monaco.languages.typescript.typescriptDefaults.setCompilerOptions({ noLib: true, allowNonTsExtensions: true });
     monaco.languages.typescript.javascriptDefaults.setCompilerOptions({ noLib: true, allowNonTsExtensions: true });
 
   }
 
-  loadReleaseNotes() {
-    fetch("notes/notes.md").then((response: any) => {
-      response.text().then((src: string) => {
-        let notes = new File("Release Notes", FileType.Markdown);
-        notes.setData(src);
-        this.state.group.open(notes);
-        this.forceUpdate();
-      })
-    });
+  async loadReleaseNotes() {
+    const response = await fetch("notes/notes.md");
+    const src = await response.text();
+    let notes = new File("Release Notes", FileType.Markdown);
+    notes.setData(src);
+    this.state.group.open(notes);
+    this.forceUpdate();
   }
 
   registerShortcuts() {
@@ -382,113 +371,114 @@ export class App extends React.Component<AppProps, AppState> {
     this.state.groups.push(group);
     this.setState({ group });
   }
-  build() {
+  async build() {
+    const run = (src: string) => {
+      let fn = new Function("gulp", "project", "Service", "logLn", src);
+      let gulp = new Gulpy();
+      fn(gulp, this.project, Service, this.logLn.bind(self));
+      gulp.run("default");
+    };
+
     let buildTs = this.project.getFile("build.ts");
     let buildJS = this.project.getFile("build.js");
     if (buildTs) {
-      buildTs.getEmitOutput().then((output: any) => {
-        run(output.outputFiles[0].text);
-      });
+      const output = await buildTs.getEmitOutput();
+      run(output.outputFiles[0].text);
     } else if (buildJS) {
       run(buildJS.getData() as string);
     } else {
       this.logLn(Errors.BuildFileMissing, "error");
       return;
     }
-    let self = this;
-    function run(src: string) {
-      let fn = new Function("gulp", "project", "Service", "logLn", src);
-      let gulp = new Gulpy();
-      fn(gulp, self.project, Service, self.logLn.bind(self));
-      gulp.run("default");
-    }
   }
-  update() {
+  async update() {
     this.logLn("Saving Project ...");
     let openedFiles = this.state.groups.map((group) => {
       return group.files.map((file) => file.getPath());
     });
-    Service.saveProject(this.project, openedFiles, this.state.fiddle).then((uri) => {
-      this.logLn("Saved Project OK");
-    });
+    await Service.saveProject(this.project, openedFiles, this.state.fiddle);
+    this.logLn("Saved Project OK");
   }
-  fork() {
+  async fork() {
     this.logLn("Forking Project ...");
-    Service.saveProject(this.project, []).then((fiddle) => {
-      this.logLn("Forked Project OK " + fiddle);
-      let search = window.location.search;
+    const fiddle = await Service.saveProject(this.project, []);
+    this.logLn("Forked Project OK " + fiddle);
+    let search = window.location.search;
+    if (this.state.fiddle) {
       assert(search.indexOf(this.state.fiddle) >= 0);
       history.replaceState({}, fiddle, search.replace(this.state.fiddle, fiddle));
-      this.setState({ fiddle });
-    });
-  }
-  makeMenuItems(file: File) {
-    let items = [];
-    let directory = file.type === FileType.Directory ? file : file.parent;
-    items.push(
-      <MenuItem key="new file" label="New File" icon={<GoFile />} onClick={() => {
-        this.setState({ newFileDialogDirectory: directory as Directory });
-      }} />
-    );
-    if (file.type === FileType.Wasm) {
-      items.push(
-        <MenuItem key="opt bin" label="Optimize w/ Binaryen" icon={<GoGear />} onClick={() => {
-          Service.optimizeWasmWithBinaryen(file);
-        }} />
-      );
-      items.push(
-        <MenuItem key="val bin" label="Validate w/ Binaryen" icon={<GoVerified />} onClick={() => {
-          Service.validateWasmWithBinaryen(file);
-        }} />
-      );
-      items.push(
-        <MenuItem key="dld bin" label="Download" icon={<GoDesktopDownload />} onClick={() => {
-          Service.download(file);
-        }} />
-      );
-      items.push(
-        <MenuItem key="dis bin" label="Disassemble w/ Wabt" icon={<GoFileCode />} onClick={() => {
-          Service.disassembleWasmWithWabt(file);
-        }} />
-      );
-      items.push(
-        <MenuItem key="dis x86" label="Firefox x86" icon={<GoFileBinary />} onClick={() => {
-          Service.disassembleX86(file);
-        }} />,
-        <MenuItem key="dis x86 base" label="Firefox x86 Baseline" icon={<GoFileBinary />} onClick={() => {
-          Service.disassembleX86(file, "--wasm-always-baseline");
-        }} />
-      );
-    } else if (file.type === FileType.C || file.type === FileType.Cpp) {
-      items.push(
-        <MenuItem key="format" label="Format w/ Clang" icon={<GoQuote />} onClick={() => {
-          Service.clangFormat(file);
-        }} />
-      );
-    } else if (file.type === FileType.Wast) {
-      items.push(
-        <MenuItem key="asm bin" label="Assemble w/ Wabt" icon={<GoFileBinary />} onClick={() => {
-          Service.assembleWastWithWabt(file);
-        }} />
-      );
+    } else {
+      history.pushState({}, fiddle, `?f=${fiddle}`);
     }
-    items.push(<Divider key="divider" height={8} />);
-    items.push(<MenuItem key="edit" label="Edit" icon={<GoPencil />} onClick={() => {
-      this.setState({ editFileDialogFile: file });
-    }} />);
-    items.push(<MenuItem key="delete" label="Delete" icon={<GoDelete />} onClick={() => {
-      let message = "";
-      if (file instanceof Directory) {
-        message = `Are you sure you want to delete '${file.name}' and its contents?`;
-      } else {
-        message = `Are you sure you want to delete '${file.name}'?`;
-      }
-      if (confirm(message)) {
-        file.parent.removeFile(file);
-      }
-    }} />);
-    return items;
+    this.setState({ fiddle });
   }
+  // makeMenuItems(file: File) {
+  //   let items = [];
+  //   let directory = file.type === FileType.Directory ? file : file.parent;
+  //   items.push(
+  //     <MenuItem key="new file" label="New File" icon={<GoFile />} onClick={() => {
+  //       this.setState({ newFileDialogDirectory: directory as Directory });
+  //     }} />
+  //   );
+  //   if (file.type === FileType.Wasm) {
+  //     items.push(
+  //       <MenuItem key="opt bin" label="Optimize w/ Binaryen" icon={<GoGear />} onClick={() => {
+  //         Service.optimizeWasmWithBinaryen(file);
+  //       }} />
+  //     );
+  //     items.push(
+  //       <MenuItem key="val bin" label="Validate w/ Binaryen" icon={<GoVerified />} onClick={() => {
+  //         Service.validateWasmWithBinaryen(file);
+  //       }} />
+  //     );
+  //     items.push(
+  //       <MenuItem key="dld bin" label="Download" icon={<GoDesktopDownload />} onClick={() => {
+  //         Service.download(file);
+  //       }} />
+  //     );
+  //     items.push(
+  //       <MenuItem key="dis bin" label="Disassemble w/ Wabt" icon={<GoFileCode />} onClick={() => {
+  //         Service.disassembleWasmWithWabt(file);
+  //       }} />
+  //     );
+  //     items.push(
+  //       <MenuItem key="dis x86" label="Firefox x86" icon={<GoFileBinary />} onClick={() => {
+  //         Service.disassembleX86(file);
+  //       }} />,
+  //       <MenuItem key="dis x86 base" label="Firefox x86 Baseline" icon={<GoFileBinary />} onClick={() => {
+  //         Service.disassembleX86(file, "--wasm-always-baseline");
+  //       }} />
+  //     );
+  //   } else if (file.type === FileType.C || file.type === FileType.Cpp) {
+  //     items.push(
+  //       <MenuItem key="format" label="Format w/ Clang" icon={<GoQuote />} onClick={() => {
+  //         Service.clangFormat(file);
+  //       }} />
+  //     );
+  //   } else if (file.type === FileType.Wast) {
+  //     items.push(
+  //       <MenuItem key="asm bin" label="Assemble w/ Wabt" icon={<GoFileBinary />} onClick={() => {
+  //         Service.assembleWastWithWabt(file);
+  //       }} />
+  //     );
+  //   }
+  //   items.push(<Divider key="divider" height={8} />);
+  //   items.push(<MenuItem key="edit" label="Edit" icon={<GoPencil />} onClick={() => {
+  //     this.setState({ editFileDialogFile: file });
+  //   }} />);
+  //   items.push(<MenuItem key="delete" label="Delete" icon={<GoDelete />} onClick={() => {
+  //     let message = "";
+  //     if (file instanceof Directory) {
+  //       message = `Are you sure you want to delete '${file.name}' and its contents?`;
+  //     } else {
+  //       message = `Are you sure you want to delete '${file.name}'?`;
+  //     }
+  //     if (confirm(message)) {
+  //       file.parent.removeFile(file);
+  //     }
+  //   }} />);
+  //   return items;
+  // }
 
   /**
    * Remember workspace split.
@@ -602,13 +592,12 @@ export class App extends React.Component<AppProps, AppState> {
         <NewProjectDialog isOpen={true} onCancel={() => {
           this.setState({ newProjectDialog: null });
         }}
-          onCreate={(template: Template) => {
+          onCreate={async (template: Template) => {
             if (!template.project) {
               this.logLn("Template doesn't contain a project definition.", "error");
             } else {
-              Service.loadProject(template.project, this.project).then((json) => {
-                this.openProjectFiles(json);
-              });
+              const json = await Service.loadProject(template.project, this.project);
+              this.openProjectFiles(json);
             }
             this.setState({ newProjectDialog: false });
           }} />
@@ -644,8 +633,24 @@ export class App extends React.Component<AppProps, AppState> {
           layout();
         }}>
           <Workspace project={this.project}
-            makeMenuItems={this.makeMenuItems.bind(this)}
             file={this.state.file}
+            onNewFile={(directory: Directory) => {
+              this.setState({ newFileDialogDirectory: directory});
+            }}
+            onEditFile={(file: File) => {
+              this.setState({ editFileDialogFile: file});
+            }}
+            onDeleteFile={(file: File) => {
+              let message = "";
+              if (file instanceof Directory) {
+                message = `Are you sure you want to delete '${file.name}' and its contents?`;
+              } else {
+                message = `Are you sure you want to delete '${file.name}'?`;
+              }
+              if (confirm(message)) {
+                file.parent.removeFile(file);
+              }
+            }}
             onClickFile={(file: File) => {
               this.state.group.open(file);
               this.forceUpdate();
@@ -667,7 +672,7 @@ export class App extends React.Component<AppProps, AppState> {
                 layout();
               }}>
                 {editorPanes}
-                <ControlCenter project={this.project} ref={(ref) => this.setControlCenter(ref)}/>
+                <ControlCenter project={this.project} ref={(ref) => this.setControlCenter(ref)} />
               </Split>
             </div>
           </div>

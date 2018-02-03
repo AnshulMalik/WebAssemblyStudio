@@ -1,6 +1,5 @@
 import * as React from "react";
 import * as ReactDOM from "react-dom";
-import * as SplitPane from "react-split-pane";
 import { Workspace } from "./components/Workspace";
 import { Console } from "./components/Console";
 import { Editor } from "./components/Editor";
@@ -14,6 +13,7 @@ import { EditorPane } from "./components/EditorPane";
 import { App } from "./components/App";
 import { Test } from "./components/Test";
 import { Service } from "./service";
+// import { ITree } from "./monaco-extra";
 
 declare var window: any;
 
@@ -71,10 +71,15 @@ let parameters = getUrlParameters();
 let embed = parameters["embed"] === true ? true : !!parseInt(parameters["embed"]);
 let fiddle = parameters["fiddle"] || parameters["f"];
 
-(window['require'])(['vs/editor/editor.main'], () => {
+(window['require'])(['vs/editor/editor.main', 'require'], (_: any, require: any) => {
+  window.Tree = require("vs/base/parts/tree/browser/treeImpl").Tree;
+  window.ContextMenuService = require("vs/platform/contextview/browser/contextMenuService").ContextMenuService;
+  window.ContextViewService = require("vs/platform/contextview/browser/contextViewService").ContextViewService;
+  window.TreeDefaults = require("vs/base/parts/tree/browser/treeDefaults");
+  window.Action = require("vs/base/common/actions").Action;
+
   ReactDOM.render(
     parameters["test"] ? <Test/> : <App embed={embed} fiddle={fiddle}/>,
     document.getElementById("app")
   );
 });
-
